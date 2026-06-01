@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#111111"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<title>Smash 'N Grill — AI Menu Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#111}
+body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;max-width:480px;margin:0 auto;height:100dvh;height:100vh}
+
+/* HEADER */
+.header{background:#1a1a1a;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2a2a;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.logo{width:42px;height:42px;background:#e8b800;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:13px;color:#111;font-weight:900;flex-shrink:0;letter-spacing:.5px}
+.title-block{flex:1;min-width:0}
+.title-block h1{font-family:'Bebas Neue',cursive;font-size:19px;color:#fff;letter-spacing:1.5px;line-height:1}
+.title-block p{font-size:11px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{display:flex;align-items:center;gap:5px;font-size:11px;color:#4caf50;flex-shrink:0}
+.dot{width:7px;height:7px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* MESSAGES */
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.messages::-webkit-scrollbar{width:3px}
+.messages::-webkit-scrollbar-track{background:transparent}
+.messages::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+
+.msg{display:flex;gap:8px;align-items:flex-end;max-width:88%;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.bubble{padding:10px 14px;border-radius:18px;font-size:13.5px;line-height:1.55;word-break:break-word}
+.msg.bot .bubble{background:#1e1e1e;color:#eee;border-bottom-left-radius:4px}
+.msg.user .bubble{background:#e8b800;color:#111;border-bottom-right-radius:4px;font-weight:500}
+.av{width:30px;height:30px;background:#e8b800;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* TYPING */
+.typing-dots{display:flex;gap:4px;padding:3px 0}
+.typing-dots span{width:6px;height:6px;background:#555;border-radius:50%;animation:blink 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+/* CHIPS */
+.chips{padding:8px 14px 6px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #1e1e1e;flex-shrink:0}
+.chip{background:#1a1a1a;color:#e8b800;border:1px solid #2e2e2e;border-radius:20px;padding:6px 13px;font-size:11.5px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,border-color .15s;white-space:nowrap}
+.chip:active{background:#252525;border-color:#e8b800}
+
+/* INPUT BAR */
+.foot{display:flex;padding:10px 14px 14px;gap:10px;border-top:1px solid #1e1e1e;background:#0f0f0f;flex-shrink:0;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+.inp{flex:1;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:24px;padding:10px 16px;color:#fff;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.inp::placeholder{color:#555}
+.inp:focus{border-color:#e8b800}
+.send-btn{width:38px;height:38px;background:#e8b800;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s;-webkit-appearance:none}
+.send-btn:active{background:#d4a600;transform:scale(.93)}
+
+/* WELCOME BANNER */
+.banner{background:linear-gradient(135deg,#1a1600,#1e1a00);border:1px solid #2e2800;border-radius:14px;padding:14px 16px;margin-bottom:4px}
+.banner h2{font-family:'Bebas Neue',cursive;font-size:22px;color:#e8b800;letter-spacing:1px;margin-bottom:4px}
+.banner p{font-size:12.5px;color:#aaa;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">S'G</div>
+  <div class="title-block">
+    <h1>SMASH 'N GRILL</h1>
+    <p>AI Menu Assistant &bull; Malir Cantt, Karachi</p>
+  </div>
+  <div class="status"><div class="dot"></div>Live</div>
+</div>
+
+<div class="messages" id="msgs">
+  <div class="banner">
+    <h2>Hey there! 👋</h2>
+    <p>Welcome to <strong>Smash 'N Grill</strong>. I'm your AI assistant — ask me anything about the menu, deals, or what to order! 🔥</p>
+  </div>
+  <div class="msg bot">
+    <div class="av">🍔</div>
+    <div class="bubble">What can I help you with today?</div>
+  </div>
+</div>
+
+<div class="chips" id="chips">
+  <button class="chip" onclick="ask('Show me the beef menu')">🥩 Beef</button>
+  <button class="chip" onclick="ask('Show me the chicken menu')">🍗 Chicken</button>
+  <button class="chip" onclick="ask('What deals do you have?')">💰 Deals</button>
+  <button class="chip" onclick="ask('What fries and sides do you have?')">🍟 Fries</button>
+  <button class="chip" onclick="ask('What drinks are available?')">🥤 Drinks</button>
+  <button class="chip" onclick="ask('What is the spiciest burger?')">🌶️ Spicy?</button>
+  <button class="chip" onclick="ask('What do you recommend?')">⭐ Best picks</button>
+  <button class="chip" onclick="ask('What are the cheapest options?')">💸 Budget</button>
+</div>
+
+<div class="foot">
+  <input class="inp" id="inp" placeholder="Ask about the menu…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <button class="send-btn" onclick="send()" aria-label="Send">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+  </button>
+</div>
+
+<script>
+const MENU={
+  limited:[
+    {name:"Chicken Chipotle",price:650},{name:"Chicken Cheeseburger",price:650},
+    {name:"Chicken Pepperoni",price:650},{name:"Chicken Shroom (limited)",price:650}
+  ],
+  beef:[
+    {name:"The Shroom Melt",desc:"Beef patty, cheddar, ranch, shroom sauce, mushrooms, caramelised onions, iceberg on potato bun",single:730,double:980,protein:33,kcal:680},
+    {name:"Fiery Jalapeño Blaze",desc:"Beef patty, cheddar, garlic mayo, jalapeños, chipotle sauce, pickles, caramelised onions on potato bun",single:720,double:970,protein:34,kcal:700},
+    {name:"Classic Cheeseburger",desc:"Beef patty, double cheddar, mustard, ketchup, pickles, diced onions on potato bun",single:640,double:870,protein:32,kcal:660},
+    {name:"Chipotle Inferno",desc:"Beef patty, chipotle sauce, peri peri, Tabasco, diced onions, pickles, mustard, melted cheese on potato bun",single:710,double:960,protein:33,kcal:670},
+    {name:"Pepperoni Firecracker",desc:"Beef patty, iceberg, crispy pepperoni, garlic mayo, Hulk sauce, melted cheese on potato bun",single:750,double:999,protein:33,kcal:670},
+    {name:"BM Special",desc:"Triple smashed patties, white cheddar, jalapeño cheese, American cheddar, smoky pepperoni, mushrooms, pickles, caramelised onions, fiery jalapeños, Hulk sauce, peri peri, Tabasco, chipotle, crisp iceberg. The ultimate cheat day tower!",single:1345,double:null,protein:"Beast Mode",kcal:"Cheat Day"}
+  ],
+  chicken:[
+    {name:"SmashedChicken",desc:"Smashed chicken, tomato, caramelised onions, pickles, jalapeño, Hulk sauce, cheddar, iceberg on potato bun",single:600,double:800,protein:34,kcal:610},
+    {name:"Golden Crumbed",desc:"Crispy chicken mince breaded patty, chicken bologna, caramelised onions, pickles, jalapeño, cheese, Hulk sauce on potato bun",single:570,double:720,protein:36,kcal:590},
+    {name:"Chicken Shroom",desc:"Smashed chicken, mushrooms, ranch, caramelised onions, iceberg, pickles, jalapeño, cheese, shroom sauce, garlic mayo on potato bun",single:650,double:850,protein:36,kcal:590}
+  ],
+  value:[
+    {name:"Old School Beef",desc:"Beef patty, mayo, ketchup, mustard, iceberg, onions, pickles, tomato in sesame bun",single:490,double:750},
+    {name:"Regular Chicken",desc:"Crispy golden crumbed chicken, mayo, mustard, cheese, iceberg in sesame bun",single:350,double:600},
+    {name:"Chapli Madness",desc:"Chicken chapli patty, mayo, chipotle sauce, iceberg, onions, pickles, tomato in sesame bun",single:390,double:650}
+  ],
+  fries:[
+    {name:"Curly Fries",reg:300,large:580},
+    {name:"Hand Cut Fries",reg:160,large:380},
+    {name:"Seasoned Fries (Peri Peri / Yoghurt Herb / Lemon Garlic Butter)",reg:180,large:400},
+    {name:"Saucy Fries (Garlic Mayo / Honey Mustard / Chipotle / Ranch)",price:480},
+    {name:"Chicken Loaded Fries",price:680},
+    {name:"Beef Loaded Fries",price:750}
+  ],
+  drinks:[
+    {name:"Mint Margarita",price:300},{name:"Blueberry Margarita",price:270},
+    {name:"Blue Lagoon Cooler",price:200},{name:"Lime Cooler",price:200},
+    {name:"Ice Tea – Peach",price:300},{name:"Ice Tea – Lemon",price:300},
+    {name:"Soft Drinks",price:100},{name:"Diet Coke",price:120},{name:"Water",price:70}
+  ],
+  addons:[
+    {name:"Bologna Slice",price:80},{name:"Pepperoni",price:100},{name:"Cheese Slice",price:80},
+    {name:"Mushrooms",price:80},{name:"Jalapeños",price:60},{name:"Caramelised Onions",price:60}
+  ],
+  dips:["SnG Garlic","SnG Ranch","SnG Chipotle","SnG Honey Mustard","SnG Jalapeno","BBQ Sauce"],
+  deals:[
+    {name:"Deal 1",desc:"1 Double patty burger + Fries + 1 Drink",price:1170},
+    {name:"Deal 2",desc:"3 Single patty burgers + 3 Drinks",price:1999},
+    {name:"Deal 3",desc:"2 Double patty burgers + 1 Fries + 2 Drinks",price:2199},
+    {name:"Deal 4",desc:"2 Golden Crumbed burgers + 1 Drink",price:1099}
+  ]
+};
+
+function respond(q){
+  const t=q.toLowerCase();
+  if(t.includes('beef')||t.includes('shroom melt')||t.includes('jalapeño')||t.includes('jalapeno blaze')||t.includes('inferno')||t.includes('pepperoni fire')||t.includes('bm special')){
+    let r="🥩 Beef Burgers\n\n";
+    MENU.beef.forEach(b=>{
+      r+=`**${b.name}** — Single Rs.${b.single}${b.double?` / Double Rs.${b.double}`:''}\n${b.desc}\n${typeof b.protein==='number'?`~${b.protein}g protein, ~${b.kcal} kcal`:b.protein+' protein · '+b.kcal+' calories'}\n\n`;
+    });
+    return r.trim();
+  }
+  if(t.includes('chicken')&&!t.includes('deal')&&!t.includes('loaded')&&!t.includes('fries')){
+    let r="🍗 Chicken Burgers\n\n";
+    MENU.chicken.forEach(b=>r+=`**${b.name}** — Single Rs.${b.single} / Double Rs.${b.double}\n${b.desc}\n~${b.protein}g protein, ~${b.kcal} kcal\n\n`);
+    r+="\n🔥 **LIMITED TIME — till 3rd June only!**\nChicken versions of beef favourites, all **Rs.650** each:\n";
+    MENU.limited.forEach(b=>r+=`• ${b.name}\n`);
+    return r.trim();
+  }
+  if(t.includes('deal')||t.includes('combo')||t.includes('bundle')||t.includes('offer')){
+    let r="💰 Daily Cravings Deals\n\n";
+    MENU.deals.forEach(d=>r+=`**${d.name}:** ${d.desc}\n→ Rs.${d.price}\n\n`);
+    return r.trim();
+  }
+  if(t.includes('fries')||t.includes('sides')){
+    let r="🍟 Fries & Sides\n\n";
+    MENU.fries.forEach(f=>{
+      if(f.reg)r+=`**${f.name}:**\nReg Rs.${f.reg} / Large Rs.${f.large}\n\n`;
+      else r+=`**${f.name}:** Rs.${f.price}\n\n`;
+    });
+    r+="Add Ons:\n";
+    MENU.addons.forEach(a=>r+=`• ${a.name}: Rs.${a.price}\n`);
+    r+="\nDips (all Rs.80): "+MENU.dips.join(', ');
+    return r;
+  }
+  if(t.includes('drink')||t.includes('beverage')||t.includes('juice')||t.includes('water')||t.includes('cola')||t.includes('margarita')||t.includes('tea')){
+    let r="🥤 Drinks\n\n";
+    MENU.drinks.forEach(d=>r+=`• **${d.name}:** Rs.${d.price}\n`);
+    return r;
+  }
+  if(t.includes('spicy')||t.includes('hot')||t.includes('spice')||t.includes('fire')){
+    return "🌶️ Spiciest options:\n\n**1. BM Special** (Rs.1345) — Triple patties, Tabasco + peri peri + chipotle + jalapeños all at once. The nuclear option.\n\n**2. Chipotle Inferno** (Single Rs.710) — Chipotle + peri peri + Tabasco. A serious heat wave.\n\n**3. Fiery Jalapeño Blaze** (Single Rs.720) — Fresh jalapeños + chipotle. Great starter spicy.\n\nWant extra Jalapeños on any burger? Just Rs.60! 🔥";
+  }
+  if(t.includes('cheap')||t.includes('budget')||t.includes('affordable')||t.includes('value')||t.includes('under')){
+    return "💸 Best value options:\n\n• **Regular Chicken** — Rs.350 single\n• **Chapli Madness** — Rs.390 single\n• **Old School Beef** — Rs.490 single\n\nBest deal: **Deal 4** — 2 Golden Crumbed burgers + 1 Drink for **Rs.1099** 🤝";
+  }
+  if(t.includes('recommend')||t.includes('best')||t.includes('popular')||t.includes('suggest')||t.includes('what should')||t.includes('picks')){
+    return "⭐ Top picks:\n\n🏆 **BM Special** (Rs.1345) — The legend. Triple smashed beast.\n\n🥇 **Fiery Jalapeño Blaze** (Rs.720) — Fan favourite. Perfect heat + flavour.\n\n🍗 **Golden Crumbed** (Rs.570) — Best chicken on the menu. That crispy patty is unreal.\n\n🔥 **LIMITED:** Chicken Chipotle (Rs.650) — till 3rd June only!\n\nFor a full meal, **Deal 1** (Rs.1170) is 🔥";
+  }
+  if(t.includes('address')||t.includes('location')||t.includes('where')||t.includes('malir')||t.includes('falcon')){
+    return "📍 Falcon Street, Malir Cantt, Karachi\n\nCome on in — the burgers are waiting! 🍔🔥";
+  }
+  if(t.includes('dip')||t.includes('sauce')){
+    return "🫙 Dips — all Rs.80 each:\n\n• SnG Garlic\n• SnG Ranch\n• SnG Chipotle\n• SnG Honey Mustard\n• SnG Jalapeno\n• BBQ Sauce\n\nPerfect with any fries! 🍟";
+  }
+  if(t.includes('limited')||t.includes('june')||(t.includes('special')&&!t.includes('bm'))){
+    return "🔥 LIMITED TIME — Till 3rd June only!\n\nBeef favourites, now in CHICKEN — all **Rs.650** each:\n\n• Chicken Chipotle\n• Chicken Cheeseburger\n• Chicken Pepperoni\n• Chicken Shroom\n\nDon't sleep on these! ⏰";
+  }
+  if(t.includes('protein')||t.includes('calorie')||t.includes('healthy')||t.includes('nutrition')||t.includes('macro')){
+    return "💪 Highest protein options:\n\n1. **Golden Crumbed** — ~36g protein (Rs.570)\n2. **Chicken Shroom** — ~36g protein (Rs.650)\n3. **SmashedChicken** — ~34g protein (Rs.600)\n4. **Fiery Jalapeño Blaze** — ~34g protein (Rs.720)\n\nLowest calories: Golden Crumbed & Chicken Shroom (~590 kcal)\n\nChicken > beef for protein per rupee! 🐔";
+  }
+  if(t.includes('price')||t.includes('cost')||t.includes('how much')||t.includes('menu')){
+    return "📋 Quick price guide:\n\n🥩 Beef Burgers: Rs.640–750 single / Rs.870–999 double\n🍗 Chicken Burgers: Rs.570–650 single / Rs.720–850 double\n💎 BM Special: Rs.1345\n🏷️ Value Burgers: Rs.350–490 single\n🍟 Fries: from Rs.160\n🥤 Drinks: from Rs.70\n\nType 'beef', 'chicken', 'deals', or 'fries' for full details!";
+  }
+  if(t.includes('double')||t.includes('patty')){
+    return "🍔 Double patty options available for most burgers!\n\nBeef doubles: Rs.870–999\nChicken doubles: Rs.720–850\nValue doubles: Rs.600–750\n\n**Best double deal:** Deal 1 — Double patty burger + Fries + Drink for **Rs.1170** 🔥\n\nOr go TRIPLE with the **BM Special** (Rs.1345)!";
+  }
+  return "Hey! 👋 I can help with:\n\n• **Beef or Chicken menu**\n• **Deals & combos**\n• **Fries, drinks & dips**\n• **Spicy picks**\n• **Best value options**\n• **Limited time specials** (till 3rd June)\n\nWhat are you craving? 🍔";
+}
+
+let busy=false;
+
+function fmt(t){
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+function addMsg(role,text){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  const av=document.createElement('div');av.className='av';
+  av.textContent=role==='bot'?'🍔':'👤';
+  const b=document.createElement('div');b.className='bubble';
+  b.innerHTML=fmt(text);
+  if(role==='bot'){d.appendChild(av);d.appendChild(b);}
+  else{d.appendChild(av);d.appendChild(b);}
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg bot';d.id='typ';
+  const av=document.createElement('div');av.className='av';av.textContent='🍔';
+  const b=document.createElement('div');b.className='bubble';
+  b.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  d.appendChild(av);d.appendChild(b);
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function ask(q){document.getElementById('inp').value=q;send();}
+
+function send(){
+  if(busy)return;
+  const inp=document.getElementById('inp');
+  const q=inp.value.trim();
+  if(!q)return;
+  inp.value='';busy=true;
+  addMsg('user',q);
+  showTyping();
+  setTimeout(()=>{
+    document.getElementById('typ')?.remove();
+    addMsg('bot',respond(q));
+    busy=false;
+  },550);
+}
+
+document.getElementById('inp').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
+</script>
+</body>
+</html>
